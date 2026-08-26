@@ -52,6 +52,12 @@ export default function App() {
     }
   }
 
+  function resetConverter() {
+    setFeet('');
+    setMeters(null);
+    setError('');
+  }
+
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', py: 4 }}>
       <Container maxWidth="sm">
@@ -82,15 +88,21 @@ export default function App() {
                 }}
               />
 
-              <Button
-                disabled={loading}
-                size="large"
-                startIcon={loading ? <CircularProgress color="inherit" size={20} /> : <SwapHorizIcon />}
-                type="submit"
-                variant="contained"
-              >
-                {loading ? 'Conversion…' : 'Convertir en mètres'}
-              </Button>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                <Button
+                  disabled={loading}
+                  fullWidth
+                  size="large"
+                  startIcon={loading ? <CircularProgress color="inherit" size={20} /> : <SwapHorizIcon />}
+                  type="submit"
+                  variant="contained"
+                >
+                  {loading ? 'Conversion…' : 'Convertir en mètres'}
+                </Button>
+                <Button disabled={loading} fullWidth onClick={resetConverter} size="large" variant="outlined">
+                  Effacer
+                </Button>
+              </Stack>
 
               {error && <Alert severity="error">{error}</Alert>}
 

@@ -1,6 +1,7 @@
 # Lab02 - Convertisseur de temperature
 
 Application avec un backend Node.js/Express et un frontend React utilisant Material UI.
+Elle convertit les temperatures entre Celsius, Fahrenheit et Kelvin.
 
 ## Installation
 
@@ -26,7 +27,8 @@ Exemple:
 ```json
 {
   "value": 25,
-  "from": "celsius"
+  "from": "celsius",
+  "to": "kelvin"
 }
 ```
 
@@ -35,8 +37,8 @@ Reponse:
 ```json
 {
   "inputUnit": "celsius",
-  "outputUnit": "fahrenheit",
-  "result": 77,
+  "outputUnit": "kelvin",
+  "result": 298.15,
   "input": 25
 }
 ```

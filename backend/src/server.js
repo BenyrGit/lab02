@@ -7,24 +7,62 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-function convertTemperature(value, from) {
+const absoluteZero = {
+  celsius: -273.15,
+  fahrenheit: -459.67,
+  kelvin: 0
+};
+
+function toCelsius(value, from) {
   if (from === 'celsius') {
-    return {
-      inputUnit: 'celsius',
-      outputUnit: 'fahrenheit',
-      result: (value * 9) / 5 + 32
-    };
+    return value;
   }
 
   if (from === 'fahrenheit') {
-    return {
-      inputUnit: 'fahrenheit',
-      outputUnit: 'celsius',
-      result: ((value - 32) * 5) / 9
-    };
+    return ((value - 32) * 5) / 9;
+  }
+
+  if (from === 'kelvin') {
+    return value - 273.15;
   }
 
   return null;
+}
+
+function fromCelsius(value, to) {
+  if (to === 'celsius') {
+    return value;
+  }
+
+  if (to === 'fahrenheit') {
+    return (value * 9) / 5 + 32;
+  }
+
+  if (to === 'kelvin') {
+    return value + 273.15;
+  }
+
+  return null;
+}
+
+function convertTemperature(value, from, to) {
+  const celsiusValue = toCelsius(value, from);
+
+  if (celsiusValue === null) {
+    return null;
+  }
+
+  const result = fromCelsius(celsiusValue, to);
+
+  if (result === null) {
+    return null;
+  }
+
+  return {
+    inputUnit: from,
+    outputUnit: to,
+    result
+  };
 }
 
 app.get('/api/health', (_request, response) => {
@@ -32,7 +70,7 @@ app.get('/api/health', (_request, response) => {
 });
 
 app.post('/api/convert', (request, response) => {
-  const { value, from } = request.body;
+  const { value, from, to } = request.body;
   const numericValue = Number(value);
 
   if (!Number.isFinite(numericValue)) {
@@ -41,11 +79,23 @@ app.post('/api/convert', (request, response) => {
     });
   }
 
-  const conversion = convertTemperature(numericValue, from);
+  if (!(from in absoluteZero) || !(to in absoluteZero)) {
+    return response.status(400).json({
+      error: 'Les unites doivent etre "celsius", "fahrenheit" ou "kelvin".'
+    });
+  }
+
+  if (numericValue < absoluteZero[from]) {
+    return response.status(400).json({
+      error: 'La temperature ne peut pas etre inferieure au zero absolu.'
+    });
+  }
+
+  const conversion = convertTemperature(numericValue, from, to);
 
   if (!conversion) {
     return response.status(400).json({
-      error: 'L unite source doit etre "celsius" ou "fahrenheit".'
+      error: 'Conversion impossible.'
     });
   }
 

@@ -12,11 +12,10 @@ import {
   Divider,
   IconButton,
   InputAdornment,
+  MenuItem,
   Paper,
   Stack,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
   Tooltip,
   Typography
 } from '@mui/material';
@@ -26,13 +25,22 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const units = {
   celsius: {
     label: 'Celsius',
-    symbol: 'deg C'
+    symbol: 'deg C',
+    min: -273.15
   },
   fahrenheit: {
     label: 'Fahrenheit',
-    symbol: 'deg F'
+    symbol: 'deg F',
+    min: -459.67
+  },
+  kelvin: {
+    label: 'Kelvin',
+    symbol: 'K',
+    min: 0
   }
 };
+
+const unitOptions = Object.entries(units);
 
 function formatConversion(conversion) {
   return `${conversion.input} ${units[conversion.inputUnit].symbol} = ${conversion.result} ${units[conversion.outputUnit].symbol}`;
@@ -41,15 +49,13 @@ function formatConversion(conversion) {
 function App() {
   const [value, setValue] = useState('');
   const [from, setFrom] = useState('celsius');
+  const [to, setTo] = useState('fahrenheit');
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const targetUnit = useMemo(
-    () => (from === 'celsius' ? 'fahrenheit' : 'celsius'),
-    [from]
-  );
+  const canConvert = useMemo(() => from !== to, [from, to]);
 
   const hasValue = value !== '';
 
@@ -57,6 +63,12 @@ function App() {
     event.preventDefault();
     setError('');
     setResult(null);
+
+    if (!canConvert) {
+      setError('Choisissez deux unites differentes.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -65,7 +77,7 @@ function App() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ value, from })
+        body: JSON.stringify({ value, from, to })
       });
 
       const data = await response.json();
@@ -84,7 +96,8 @@ function App() {
   };
 
   const handleSwap = () => {
-    setFrom(targetUnit);
+    setFrom(to);
+    setTo(from);
     setResult(null);
     setError('');
   };
@@ -93,6 +106,30 @@ function App() {
     setValue('');
     setResult(null);
     setError('');
+  };
+
+  const handleFromChange = (event) => {
+    const selectedUnit = event.target.value;
+
+    setFrom(selectedUnit);
+    setResult(null);
+    setError('');
+
+    if (selectedUnit === to) {
+      setTo(from);
+    }
+  };
+
+  const handleToChange = (event) => {
+    const selectedUnit = event.target.value;
+
+    setTo(selectedUnit);
+    setResult(null);
+    setError('');
+
+    if (selectedUnit === from) {
+      setFrom(to);
+    }
   };
 
   return (
@@ -138,7 +175,7 @@ function App() {
                     Convertisseur de temperature
                   </Typography>
                   <Typography sx={{ color: 'rgba(255, 255, 255, 0.82)' }}>
-                    Celsius et Fahrenheit avec le backend Express.
+                    Celsius, Fahrenheit et Kelvin avec le backend Express.
                   </Typography>
                 </Box>
               </Stack>
@@ -158,28 +195,35 @@ function App() {
             <Stack spacing={3}>
               <Box component="form" onSubmit={handleConvert}>
                 <Stack spacing={2.5}>
-                  <ToggleButtonGroup
-                    value={from}
-                    exclusive
-                    fullWidth
-                    onChange={(_event, selectedUnit) => {
-                      if (!selectedUnit) {
-                        return;
-                      }
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                    <TextField
+                      select
+                      label="De"
+                      value={from}
+                      onChange={handleFromChange}
+                      fullWidth
+                    >
+                      {unitOptions.map(([unit, details]) => (
+                        <MenuItem key={unit} value={unit}>
+                          {details.label}
+                        </MenuItem>
+                      ))}
+                    </TextField>
 
-                      setFrom(selectedUnit);
-                      setResult(null);
-                      setError('');
-                    }}
-                    aria-label="Unite source"
-                  >
-                    <ToggleButton value="celsius" aria-label="Celsius vers Fahrenheit">
-                      Celsius vers Fahrenheit
-                    </ToggleButton>
-                    <ToggleButton value="fahrenheit" aria-label="Fahrenheit vers Celsius">
-                      Fahrenheit vers Celsius
-                    </ToggleButton>
-                  </ToggleButtonGroup>
+                    <TextField
+                      select
+                      label="Vers"
+                      value={to}
+                      onChange={handleToChange}
+                      fullWidth
+                    >
+                      {unitOptions.map(([unit, details]) => (
+                        <MenuItem key={unit} value={unit}>
+                          {details.label}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Stack>
 
                   <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
                     <TextField
@@ -187,7 +231,7 @@ function App() {
                       value={value}
                       onChange={(event) => setValue(event.target.value)}
                       type="number"
-                      inputProps={{ step: 'any' }}
+                      inputProps={{ step: 'any', min: units[from].min }}
                       required
                       fullWidth
                       autoFocus
@@ -238,7 +282,7 @@ function App() {
                         type="submit"
                         variant="contained"
                         size="large"
-                        disabled={isLoading}
+                        disabled={isLoading || !canConvert}
                         sx={{ flex: 1, minWidth: 0 }}
                       >
                         {isLoading ? '...' : 'OK'}
@@ -289,7 +333,7 @@ function App() {
                       Pret pour une conversion
                     </Typography>
                     <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                      {units[from].label} vers {units[targetUnit].label}
+                      {units[from].label} vers {units[to].label}
                     </Typography>
                     <Typography color="text.secondary">
                       Entrez une temperature, puis lancez la conversion.

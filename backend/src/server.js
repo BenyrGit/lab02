@@ -10,7 +10,8 @@ app.use(express.json());
 const absoluteZero = {
   celsius: -273.15,
   fahrenheit: -459.67,
-  kelvin: 0
+  kelvin: 0,
+  rankine: 0
 };
 
 function toCelsius(value, from) {
@@ -24,6 +25,10 @@ function toCelsius(value, from) {
 
   if (from === 'kelvin') {
     return value - 273.15;
+  }
+
+  if (from === 'rankine') {
+    return ((value - 491.67) * 5) / 9;
   }
 
   return null;
@@ -40,6 +45,10 @@ function fromCelsius(value, to) {
 
   if (to === 'kelvin') {
     return value + 273.15;
+  }
+
+  if (to === 'rankine') {
+    return ((value + 273.15) * 9) / 5;
   }
 
   return null;
@@ -81,7 +90,7 @@ app.post('/api/convert', (request, response) => {
 
   if (!(from in absoluteZero) || !(to in absoluteZero)) {
     return response.status(400).json({
-      error: 'Les unites doivent etre "celsius", "fahrenheit" ou "kelvin".'
+      error: 'Les unites doivent etre "celsius", "fahrenheit", "kelvin" ou "rankine".'
     });
   }
 

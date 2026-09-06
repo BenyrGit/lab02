@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import HistoryIcon from '@mui/icons-material/History';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
@@ -21,6 +22,7 @@ import {
 } from '@mui/material';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const HISTORY_STORAGE_KEY = 'temperature-converter-history';
 
 const units = {
   celsius: {
@@ -42,6 +44,29 @@ const units = {
 
 const unitOptions = Object.entries(units);
 
+function loadHistory() {
+  try {
+    const storedHistory = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY));
+
+    if (!Array.isArray(storedHistory)) {
+      return [];
+    }
+
+    return storedHistory
+      .filter(
+        (item) =>
+          item &&
+          Number.isFinite(item.input) &&
+          Number.isFinite(item.result) &&
+          Object.hasOwn(units, item.inputUnit) &&
+          Object.hasOwn(units, item.outputUnit)
+      )
+      .slice(0, 5);
+  } catch {
+    return [];
+  }
+}
+
 function formatConversion(conversion) {
   return `${conversion.input} ${units[conversion.inputUnit].symbol} = ${conversion.result} ${units[conversion.outputUnit].symbol}`;
 }
@@ -51,13 +76,25 @@ function App() {
   const [from, setFrom] = useState('celsius');
   const [to, setTo] = useState('fahrenheit');
   const [result, setResult] = useState(null);
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState(loadHistory);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const canConvert = useMemo(() => from !== to, [from, to]);
 
   const hasValue = value !== '';
+
+  useEffect(() => {
+    try {
+      if (history.length === 0) {
+        localStorage.removeItem(HISTORY_STORAGE_KEY);
+      } else {
+        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+      }
+    } catch {
+      // L'application reste utilisable si le stockage local est indisponible.
+    }
+  }, [history]);
 
   const handleConvert = async (event) => {
     event.preventDefault();
@@ -106,6 +143,10 @@ function App() {
     setValue('');
     setResult(null);
     setError('');
+  };
+
+  const handleClearHistory = () => {
+    setHistory([]);
   };
 
   const handleFromChange = (event) => {
@@ -345,9 +386,26 @@ function App() {
               <Divider />
 
               <Stack spacing={1.5}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <HistoryIcon color="action" />
-                  <Typography variant="h6">Historique</Typography>
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={2}
+                  alignItems={{ xs: 'stretch', sm: 'center' }}
+                  justifyContent="space-between"
+                >
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <HistoryIcon color="action" />
+                    <Typography variant="h6">Historique</Typography>
+                  </Stack>
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    size="small"
+                    startIcon={<DeleteSweepIcon />}
+                    onClick={handleClearHistory}
+                    disabled={history.length === 0}
+                  >
+                    Effacer l'historique
+                  </Button>
                 </Stack>
 
                 {history.length > 0 ? (

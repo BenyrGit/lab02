@@ -6,8 +6,11 @@ Elle convertit les temperatures entre Celsius, Fahrenheit et Kelvin.
 ## Installation
 
 ```powershell
+npm install
 npm run install:all
 ```
+
+La première commande installe notamment `concurrently`, utilisé par la commande de démarrage à la racine du projet. La seconde installe les dépendances du backend et du frontend.
 
 ## Demarrage
 

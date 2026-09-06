@@ -145,6 +145,14 @@ function App() {
     setError('');
   };
 
+  const handleLoadExample = () => {
+    setValue('25');
+    setFrom('celsius');
+    setTo('fahrenheit');
+    setResult(null);
+    setError('');
+  };
+
   const handleClearHistory = () => {
     setHistory([]);
   };
@@ -319,6 +327,9 @@ function App() {
                           </IconButton>
                         </span>
                       </Tooltip>
+                      <Button type="button" variant="outlined" onClick={handleLoadExample}>
+                        Exemple
+                      </Button>
                       <Button
                         type="submit"
                         variant="contained"

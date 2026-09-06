@@ -39,6 +39,11 @@ const units = {
     label: 'Kelvin',
     symbol: 'K',
     min: 0
+  },
+  rankine: {
+    label: 'Rankine',
+    symbol: 'R',
+    min: 0
   }
 };
 

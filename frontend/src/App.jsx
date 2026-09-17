@@ -23,7 +23,9 @@ import {
 
 // En production, les appels passent par NGINX sur le même domaine.
 // Une URL absolue localhost ne fonctionnerait que sur la VM elle-même.
-const API_URL = import.meta.env.VITE_API_URL || '';
+// NGINX expose l'API sous /api sur le même domaine que le frontend.
+// Garder ce préfixe ici évite de générer /api/api/convert si VITE_API_URL=/api.
+const API_URL = '';
 const HISTORY_STORAGE_KEY = 'temperature-converter-history';
 
 const units = {

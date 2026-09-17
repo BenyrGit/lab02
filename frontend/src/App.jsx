@@ -21,7 +21,9 @@ import {
   Typography
 } from '@mui/material';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// En production, les appels passent par NGINX sur le même domaine.
+// Une URL absolue localhost ne fonctionnerait que sur la VM elle-même.
+const API_URL = import.meta.env.VITE_API_URL || '';
 const HISTORY_STORAGE_KEY = 'temperature-converter-history';
 
 const units = {

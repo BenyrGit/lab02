@@ -66,7 +66,7 @@ function convertTemperature(value, from, to) {
 }
 
 app.get('/api/health', (_request, response) => {
-  response.json({ status: 'ok' });
+  response.json({ status: 'ok', uptime: Math.round(process.uptime()), timestamp: new Date().toISOString() });
 });
 
 app.post('/api/convert', (request, response) => {
@@ -106,6 +106,11 @@ app.post('/api/convert', (request, response) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`Backend pret sur http://localhost:${port}`);
-});
+const isMainModule = process.argv[1] && new URL(`file://${process.argv[1].replaceAll('\\', '/')}`).href === import.meta.url;
+if (isMainModule && process.env.NODE_ENV !== 'test' && !process.argv.includes('--test')) {
+  app.listen(port, () => {
+    console.log(`Backend pret sur http://localhost:${port}`);
+  });
+}
+
+export { absoluteZero, convertTemperature, fromCelsius, toCelsius };

@@ -7,6 +7,20 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+app.use((request, response, next) => {
+  const start = Date.now();
+
+  response.on('finish', () => {
+    const duration = Date.now() - start;
+
+    console.log(
+      `[${new Date().toISOString()}] ${request.method} ${request.originalUrl} - ${response.statusCode} - ${duration}ms`
+    );
+  });
+
+  next();
+});
+
 const absoluteZero = {
   celsius: -273.15,
   fahrenheit: -459.67,

@@ -20,5 +20,5 @@ test('refuse une température sous le zéro absolu', () => {
 });
 
 test('refuse les unités inconnues', () => {
-  assert.equal(convertTemperature(10, 'celsius', 'rankine'), null);
+  assert.equal(convertTemperature(10, 'celsius', 'bogus'), null);
 });

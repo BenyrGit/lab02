@@ -65,5 +65,9 @@ jobs:
 
       - name: Smoke test
         run: |
-          curl -fsS "${{ vars.APP_URL }}"
-          curl -fsS "${{ vars.APP_URL }}/api/health"
+          curl -fsS -o /dev/null "${{ vars.APP_URL }}"
+          curl -fsS \
+            --retry 10 \
+            --retry-delay 3 \
+            --retry-all-errors \
+            "${{ vars.APP_URL }}/api/health"

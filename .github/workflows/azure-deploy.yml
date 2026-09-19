@@ -19,18 +19,22 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            frontend/package-lock.json
 
-      - name: Installer les dependances
-        run: npm ci
+      - name: Installer les dependances du backend
+        run: npm ci --prefix backend
 
-      - name: Lint
-        run: npm run lint --if-present
+      - name: Tester le backend
+        run: npm test --prefix backend
 
-      - name: Tests
-        run: npm test --if-present
+      - name: Installer les dependances du frontend
+        run: npm ci --prefix frontend
 
-      - name: Build
-        run: npm run build --if-present
+      - name: Construire le frontend
+        run: npm run build --prefix frontend
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -53,12 +57,13 @@ jobs:
             cd "${{ vars.APP_DIR }}"
             git fetch origin main
             git reset --hard origin/main
-            npm ci
-            npm run build --if-present
+            npm ci --omit=dev --prefix backend
+            npm ci --prefix frontend
+            npm run build --prefix frontend
             sudo -n /usr/bin/systemctl restart projet1.service
           '
 
       - name: Smoke test
         run: |
           curl -fsS "${{ vars.APP_URL }}"
-          curl -fsSI "${{ vars.APP_URL }}"
+          curl -fsS "${{ vars.APP_URL }}/api/health"
